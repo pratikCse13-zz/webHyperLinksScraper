@@ -1,0 +1,18 @@
+{
+  "name": "scrape",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "pratik",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "express": "^4.14.0",
+    "fast-csv": "^2.3.0",
+    "request": "^2.79.0",
+    "validator": "^6.2.0"
+  }
+}
