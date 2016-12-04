@@ -149,19 +149,16 @@ function exportToFile(kill){
 }
 
 process.on('uncaughtException',function(err){
-	console.log('uncaught called');
-	console.log(err);
+	console.log('\nconnection issues: some links could not be connected properly');
+	console.log('\nawaiting pending requests and finishing task.........\n');
 	exportToFile(false);
 });
 
 process.on('beforeExit',function(){
-	console.log('before exit called');
 	exportToFile(true);
 });
 
 process.on('SIGINT',function(){
-	console.log('sigint called');
 	exportToFile(true);
 });
 
-	
