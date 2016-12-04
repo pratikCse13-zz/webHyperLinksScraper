@@ -1,16 +1,15 @@
+//setting the maximum limit of event listeners to infinity
 require('events').EventEmitter.prototype._maxListeners = 0;
 
-var express = require('express');
 var validator = require('validator');
 var csv = require('fast-csv');
 var fs = require('fs');
 var CONSTANTS = require('./config/constants');
-var dns = require('dns');
 var async = require('async');
 var request = require('request').defaults({maxRedirects: 9});
 var cheerio = require('cheerio');
 
-//initializing constants from cinfig file
+//initializing constants from config file
 var start = CONSTANTS.linkToBeScrapped;
 var links = [CONSTANTS.linkToBeScrapped];
 var scrappedLinks = [CONSTANTS.linkToBeScrapped];
@@ -19,33 +18,40 @@ var row = CONSTANTS.csvRowLength;
 var exportLimit = CONSTANTS.fileExportLimit;
 var fileName = CONSTANTS.fileName;
 
-//constants to run the loop
+//counters
 var scraps = 0;
 var fileOutputs = 0;
 
-
-
+//callback for each task of the async queue
 function scrappedLinkCallback(err,$){
+	//if the request to the link was not successfully returned
 	if(err)
 		console.log('\nconnection issues: some links could not be connected properly');
+	//successful return of the request
 	else
 	{
 		if($ != null)
 		{
 			if((typeof($) == 'function') && ($('a').length != 0))
 	 		{
+	 			//iterating over the hyperlinks
 	 			$('a').each(function(){
+	 				//extracting the link 
 	 				var currentLink = $(this).attr('href');
 	 				if(typeof(currentLink) == 'string' && validator.isURL(currentLink))
 		 			{
+		 				//pushing the scrapped link to collection of links which are to be scrapped further
 		 				links.push(currentLink);
+		 				//pushing the scrapped link to collection of links which are to be written to CSV
 		 				scrappedLinks.push(currentLink);
+		 				//incrementing the number of scrapped links count 
 		 				scraps++;	
 	 				}
 	 			});
 	 		}
 		}
 	}	
+	//if the number of scrapped links increases from a certain limit dump them to CSV
 	if(scrappedLinks.length > exportLimit)
 	{
 		var values = [];
@@ -58,52 +64,73 @@ function scrappedLinkCallback(err,$){
 		}
 		csv.writeToStream(fs.createWriteStream(fileName,{flags: 'a'}),
 			              values,
-			              	{
-			              		headers: false,
-			                	includeEndRowDelimiter: true
-			              	})
+			              {
+			              	headers: false,
+			                includeEndRowDelimiter: true
+			              })
 		   .on("finish", function(){
-		       fileOutputs += exportLimit; 
+		   	   //this variable keeps track of how many links have been written to CSV
+		       fileOutputs += (times*row); 
 		});
 	}
 }
 
+//the async queue with the task iterator
 var q = async.queue(function(link, callback) {
+	//extract the link currently being crawled from the list of links to be crawled
 	var index = links.indexOf(link);
 	if(index != -1)
-		links.splice(index,index+1);
+		links.splice(index,1);
     if(typeof(link) == 'string' && validator.isURL(link))
 	{	
+		//making a request to the link 
 		request(link,function(err,res,body){
+			//loading the DOM of the link into a variable
 			var $ = cheerio.load(body);
+			//callback of this individual queue task
 			callback(err,$);
 		});
 	}
 }, concurrency);
 
-// assign a callback{
+// this is the callback when all tasks of a queue have been completed
 q.drain = function() {
 	console.log(`\nnumber of scrapped links found until now: ${scraps}`);
     console.log(`number of scrapped links exported to csv until now: ${fileOutputs}`);
     console.log(`${links.length} links left to be scraped`);
     console.log('scraping ........ to stop press: Ctrl+C !!!');
+	//if any links were scrapped then scrape them 
 	if(links.length>0)
 		q.push(links,scrappedLinkCallback);		
 };
 
+//this is start of the execution
+//checks for write permissions to the folder
+fs.access(__dirname, fs.W_OK, function(err) {
+	//if there are no write permissions then stops process and asks for permissions
+	if(err){
+    	console.log('\ndo not have write permissions to this folder');
+    	console.log('\nchange permissions and run again\n');
+    	process.kill(process.pid);
+  	}
+  	//if there are write permissions continues			
+ 	else{	
+  		//check if the file to be written to exists and if not create it
+		if(!fs.existsSync(fileName))
+			fs.closeSync(fs.openSync(fileName, 'a'));	
+		console.log(`\nscraping ${start} and saving to ${fileName}......`);
+		//the first link queued to be processed
+		q.push(links,scrappedLinkCallback);
+ 	}	
+});
 
-if(!fs.existsSync(fileName))
-	fs.closeSync(fs.openSync(fileName, 'a'));	
-console.log(`\nscraping ${start} and saving to ${fileName}......`);
-q.push(links,scrappedLinkCallback);
-
-
-
+//this method writes the scrapped links from memory to file and is called before exceptions and exit calls 
 function exportToFile(kill){
-	console.log(`\n${scrappedLinks.length + fileOutputs} links saved\n`);
 	var values = [];
+	//if there are any links in memory to be saved to file
 	if(scrappedLinks.length>0)
 	{
+		console.log(`\nover ${scrappedLinks.length + fileOutputs} links saved\n`);
 		while(scrappedLinks.length>0)
 		{
 			var extracted = scrappedLinks.splice(0,row);
@@ -113,8 +140,8 @@ function exportToFile(kill){
 		csv.writeToStream(fs.createWriteStream(fileName,{flags: 'a'}),
 						  values,
 		                  {		
-		                  		headers: false,
-		                  		includeEndRowDelimiter: true
+		                  	headers: false,
+		                  	includeEndRowDelimiter: true
 		                  })
 		   .on("finish", function(){
 		   	    if(kill)
@@ -129,7 +156,7 @@ function exportToFile(kill){
 }
 
 process.on('uncaughtException',function(err){
-	console.log('connection issues: some links could not be connected properly');
+	console.log('\nconnection issues: some links could not be connected properly');
 	console.log('\nawaiting pending requests and finishing task.........\n');
 	exportToFile(false);
 });
