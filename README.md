@@ -8,6 +8,10 @@ A node.js app to crawl a particular URL and find all the hyperlinks and nested h
 
 #Execution
 
-For execute run this command
+For execution run this command
 
-	node . [link to be scrapped | default: https://medium.com] [fileName | default: links.csv] [concurrency | default: 5]
+	node . [link to be scrapped | default: https://www.medium.com] [fileName | default: links.csv] [concurrency | default: 5]
+
+#Note:
+
+the link should be provided with protocol
