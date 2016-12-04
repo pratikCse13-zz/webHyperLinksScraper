@@ -83,7 +83,11 @@ var q = async.queue(function(link, callback) {
     if(typeof(link) == 'string' && validator.isURL(link))
 	{	
 		//making a request to the link 
-		request(link,function(err,res,body){
+		var options = {
+			url: link,
+			timeout: 30000
+		};
+		request(options,function(err,res,body){
 			//loading the DOM of the link into a variable
 			var $ = cheerio.load(body);
 			//callback of this individual queue task
@@ -120,6 +124,14 @@ fs.access(__dirname, fs.W_OK, function(err) {
 		console.log(`\nscraping ${start} and saving to ${fileName}......`);
 		//the first link queued to be processed
 		q.push(links,scrappedLinkCallback);
+		//keeps consoling the status in intervals 
+		setInterval(function(){
+			console.log(`\nnumber of scrapped links found until now: ${scraps}`);
+    		console.log(`number of scrapped links exported to csv until now: ${fileOutputs}`);
+    		console.log(`${links.length} links left to be scraped`);
+    		console.log('scraping ........ to stop press: Ctrl+C !!!');
+		},10000);
+
  	}	
 });
 
