@@ -130,7 +130,7 @@ fs.access(__dirname, fs.W_OK, function(err) {
     		console.log(`number of scrapped links exported to csv until now: ${fileOutputs}`);
     		console.log(`${links.length} links left to be scraped`);
     		console.log('scraping ........ to stop press: Ctrl+C !!!');
-		},10000);
+		},7000);
 
  	}	
 });
