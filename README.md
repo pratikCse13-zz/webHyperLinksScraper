@@ -5,7 +5,6 @@ A node.js app to crawl a particular URL and find all the hyperlinks and nested h
 
 1. Clone this repository into a directory
 2. npm install
-3. Execution
 
 #Execution
 
