@@ -32,7 +32,11 @@ function crawl(){
         if(typeof(link) == 'string' && validator.isURL(link))
 		{	
 			//request made to the link
-			request(link,function(err,res,body){
+			var options = {
+				url: link,
+				timeout: 30000
+			};
+			request(options,function(err,res,body){
 				//on receive of response reduce concurrency count by 1
 				running--;
 				//if the request did not return properly
