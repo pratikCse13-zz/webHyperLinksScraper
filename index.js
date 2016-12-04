@@ -19,8 +19,8 @@ var exportLimit = CONSTANTS.fileExportLimit;
 var fileName = CONSTANTS.fileName;
 
 //counters
-var scraps = 0;
-var fileOutputs = 0;
+var scraps = 0;			//keeps a count of scrapped links
+var fileOutputs = 0;	//count of links written to file
 
 //callback for each task of the async queue
 function scrappedLinkCallback(err,$){
@@ -69,7 +69,6 @@ function scrappedLinkCallback(err,$){
 			                includeEndRowDelimiter: true
 			              })
 		   .on("finish", function(){
-		   	   //this variable keeps track of how many links have been written to CSV
 		       fileOutputs += (times*row); 
 		});
 	}
