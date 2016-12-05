@@ -26,7 +26,10 @@ var fileOutputs = 0;	//count of links written to file
 function scrappedLinkCallback(err,$){
 	//if the request to the link was not successfully returned
 	if(err)
+	{
+		throw new Error('connection issues: some links could not be connected properly');	
 		console.log('\nconnection issues: some links could not be connected properly');
+	}
 	//successful return of the request
 	else
 	{
