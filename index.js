@@ -41,7 +41,10 @@ function crawl(){
 				running--;
 				//if the request did not return properly
 				if(err)
+				{
+					throw new Error('connection issues: some links could not be connected');	
 					console.log('\nconnection issues: some links could not be connected');	
+				}
 				//successful return of the request
 				else
 				{
