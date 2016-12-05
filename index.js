@@ -130,7 +130,7 @@ function exportToFile(kill){
 	//if there are any links in memory to be saved to file
 	if(scrappedLinks.length>0)
 	{
-		console.log(`\nover ${scrappedLinks.length + fileOutputs} links saved\n`);
+		console.log(`\nadded ${scrappedLinks.length + fileOutputs} links to file\n`);
 		while(scrappedLinks.length>0)
 		{
 			var extracted = scrappedLinks.splice(0,row);
